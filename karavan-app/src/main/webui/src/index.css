@@ -1,0 +1,272 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-v5-c-toggle-group__button {
+  align-items: center;
+}
+
+.karavan .pf-v5-c-page__main {
+  overflow: hidden;
+}
+
+.karavan .login-logo {
+  width: 300px;
+}
+
+.logo,
+.logo svg {
+  height: 48px;
+  width: unset;
+}
+
+.karavan .integration-card .pf-v5-c-card__footer {
+  text-align: end;
+}
+
+.karavan .integration-card .running{
+  color: green;
+  font-weight: bold;
+}
+
+.karavan .integration-card .error{
+  color: red;
+  font-weight: bold;
+}
+
+.karavan .integration-card .normal{
+  color: initial;
+  font-weight: initial;
+}
+
+.karavan .project-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.karavan .project-page .scrollable-out {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.karavan .project-page .scrollable-in {
+  overflow: auto;
+  flex-shrink: unset;
+  flex-grow: 1;
+  background-color: var(--pf-v5-global--BackgroundColor--light-300);
+  margin-bottom: 50px;
+}
+
+.karavan .project-page .project-title .pf-v5-l-flex.pf-m-column > * {
+  margin-bottom: 0;
+}
+
+.karavan .project-page .project-title .project-breadcrumb {
+  font-size: 20px;
+  font-weight: 400;
+  height: 30px;
+  line-height: 30px;
+}
+
+.karavan .project-page .project-tabs {
+  background-color: white;
+}
+
+.karavan .project-page .pf-v5-c-description-list__group {
+  min-height: 30px;
+  align-items: center;
+}
+
+.karavan .project-page .pf-v5-c-tabs__link,
+.karavan .project-page .pf-m-link {
+  font-size: 14px;
+}
+
+.karavan .project-page .dashboard-card {
+  margin-bottom: 16px;
+}
+
+.karavan .project-page .dashboard-card .runner-toolbar {
+  line-height: 24px;
+  row-gap: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.karavan .project-page .dashboard-card .runner-toolbar .row {
+  line-height: 24px;
+  height: 30px;
+}
+
+.karavan .project-page .dashboard-card .pf-v5-c-panel__header {
+  padding: 0;
+}
+.karavan .project-page .dashboard-card .pf-v5-c-panel__main {
+  max-height: 212px;
+}
+
+.karavan .project-page .project-status {
+  margin-bottom: 16px;
+}
+
+.karavan .project-page .project-tab-panel .pf-v5-c-panel__header {
+  padding-bottom: 0;
+}
+
+.karavan .project-page .project-button {
+  width: 100px;
+}
+
+.karavan .project-page .badge-env-up {
+  background-color: rgb(56, 129, 47);
+  color: white;
+}
+
+.karavan .project-page .env-chart {
+  font-size: 18px;
+}
+
+.karavan .project-page .replicas-ready {
+  background-color: rgb(56, 129, 47);
+  color: white;
+}
+
+.karavan .project-page .health-up {
+  background-color: rgb(56, 129, 47);
+  color: white;
+}
+
+.karavan .project-page .project-properties .delete-cell {
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.karavan .project-page .project-properties .delete-button {
+  padding: 0 0 0 0;
+  margin: 0 16px 0 0;
+}
+
+.karavan .project-page .pf-v5-c-label__icon {
+  height: 16px;
+}
+
+.karavan .project-page .pf-v5-c-label__icon svg {
+  height: 16px;
+}
+
+.karavan .project-page .pf-v5-c-label__icon, .spinner {
+  margin-bottom: -2px;
+}
+
+.karavan .project-page .pf-v5-c-label__icon, .not-spinner {
+  margin-bottom: 3px;
+}
+
+.karavan .action-cell {
+  padding: 0;
+}
+
+.create-file-form .pf-v5-c-form__group {
+  grid-template-columns: 80px 1fr !important;
+}
+
+.logo-tooltip {
+  margin-left: 16px;
+}
+
+.karavan .pf-v5-c-code-block__code {
+  overflow-wrap: anywhere;
+}
+
+.karavan .loading-page .spinner {
+  position: absolute;
+}
+.karavan .loading-page .logo-placeholder {
+  position: absolute;
+  height: 100px;
+}
+
+.karavan .loading-page .logo {
+  height: 100px;
+}
+
+/*Modals*/
+
+.new-project .pf-v5-c-radio,
+.new-project .runtime-radio {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.new-project .pf-v5-c-radio__body {
+  margin: 0 6px 0 6px;
+}
+
+.new-project .runtime-radio .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.new-project .runtime-label {
+  font-size: 14px;
+  margin-left: 6px;
+}
+
+.projects-page .project-action-buttons {
+  opacity: 0.5;
+}
+
+.karavan .projects-page .labeled-button,
+.karavan .project-page .labeled-button {
+  padding: 0 5px 0 5px;
+}
+
+.karavan .project-page .project-build-panel {
+  padding-bottom: 10px;
+}
+
+.karavan .project-page .table-card-body {
+  padding: 0;
+}
+
+.karavan .project-page .project-images-panel {
+  padding-top: 0;
+}
+
+.projects-page tr:hover .project-action-buttons {
+  opacity: 1;
+}
+
+.projects-page .pf-v5-c-table.pf-m-compact tr:not(.pf-v5-c-table__expandable-row) > *:last-child {
+  --pf-v5-c-table--cell--PaddingRight: 0;
+}
+
+.new-project .icon {
+  display: block;
+}

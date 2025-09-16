@@ -1,0 +1,801 @@
+{
+  "name": "karavan",
+  "publisher": "camel-karavan",
+  "displayName": "Karavan",
+  "icon": "icons/karavan.png",
+  "description": "Integration Toolkit for Apache Camel",
+  "version": "4.10.2",
+  "license": "Apache-2.0",
+  "preview": false,
+  "bugs": {
+    "url": "https://github.com/apache/camel-karavan/issues"
+  },
+  "author": {
+    "name": "Marat Gubaidullin",
+    "email": "marat.gubaidullin@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "Marat Gubaidullin",
+      "email": "marat.gubaidullin@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apache/camel-karavan/tree/main/karavan-vscode"
+  },
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "homepage": "https://github.com/apache/camel-karavan/tree/main/karavan-vscode",
+  "keywords": [
+    "Camel",
+    "Toolkit",
+    "Low code",
+    "Integration",
+    "Camel Yaml",
+    "JBang"
+  ],
+  "activationEvents": [
+    "onCommand:karavan.create-yaml",
+    "onCommand:karavan.create-kamelet",
+    "onCommand:karavan.create-application",
+    "onCommand:karavan.deploy",
+    "onCommand:karavan.open",
+    "onCommand:karavan.open-file",
+    "onCommand:karavan.run-project-jbang",
+    "onCommand:karavan.run-project-runtime",
+    "onCommand:karavan.jbang-export",
+    "onCommand:karavan.generate-rest",
+    "onCommand:karavan.download-image",
+    "onCommand:karavan.openKnowledgebase",
+    "onCommand:karavan.reportIssue",
+    "onView:integrations"
+  ],
+  "main": "./dist/extension.js",
+  "browser": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Karavan",
+      "properties": {
+        "camel.version": {
+          "type": "string",
+          "default": "4.10.2",
+          "description": "Camel version",
+          "scope": "machine",
+          "order": 10
+        },
+        "camel.runtimes": {
+          "type": "string",
+          "default": "camel-main",
+          "enum": [
+            "camel-main",
+            "quarkus",
+            "spring-boot"
+          ],
+          "description": "Runtimes",
+          "scope": "machine",
+          "order": 20
+        },
+        "camel.deployTarget": {
+          "type": "string",
+          "default": "openshift",
+          "enum": [
+            "openshift",
+            "kubernetes",
+            "none"
+          ],
+          "description": "Deploy Target",
+          "scope": "machine",
+          "order": 22
+        },
+        "camel.maxMessages": {
+          "type": "integer",
+          "default": 0,
+          "description": "Maximum number of messages to process before stopping",
+          "scope": "machine",
+          "order": 30
+        },
+        "camel.loggingLevel": {
+          "type": "string",
+          "default": "info",
+          "enum": [
+            "info",
+            "error",
+            "debug",
+            "trace"
+          ],
+          "description": "Logging level",
+          "scope": "machine",
+          "order": 40
+        },
+        "camel.dev": {
+          "type": "boolean",
+          "default": "false",
+          "description": "Run in developer mode (including reload routes on change)",
+          "scope": "machine",
+          "order": 50
+        },
+        "camel.messageTracing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Logging message details during routing",
+          "scope": "machine",
+          "order": 60
+        },
+        "Karavan.supportedComponents": {
+          "type": "string",
+          "default": "",
+          "description": "Supported Components (*.json)",
+          "scope": "machine",
+          "order": 61
+        },
+        "Karavan.supportedDataformats": {
+          "type": "string",
+          "default": "",
+          "description": "Supported Dataformats (*.json)",
+          "scope": "machine",
+          "order": 62
+        },
+        "Karavan.supportedLanguages": {
+          "type": "string",
+          "default": "",
+          "description": "Supported Expression Languages (*.json)",
+          "scope": "machine",
+          "order": 62
+        },
+        "Karavan.supportedOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Supported Only",
+          "scope": "machine",
+          "order": 64
+        },
+        "Karavan.kameletsPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom Kamelets Path",
+          "scope": "machine",
+          "order": 65
+        },
+        "Karavan.defaultGroupId": {
+          "type": "string",
+          "default": "org.demo",
+          "description": "Default GroupId",
+          "scope": "machine",
+          "order": 66
+        },
+        "Karavan.quarkusOpenshiftDeploy": {
+          "type": "string",
+          "default": "mvn clean package",
+          "description": "Quarkus deploy command for Openshift",
+          "scope": "machine",
+          "order": 70
+        },
+        "Karavan.quarkusKubernetesDeploy": {
+          "type": "string",
+          "default": "eval $(minikube -p minikube docker-env) && mvn clean package",
+          "description": "Quarkus deploy command for Kubernetes",
+          "scope": "machine",
+          "order": 70
+        },
+        "Karavan.springbootOpenshiftDeploy": {
+          "type": "string",
+          "default": "mvn -Popenshift clean package oc:build oc:resource oc:apply",
+          "description": "Springboot deploy command for Openshift",
+          "scope": "machine",
+          "order": 70
+        },
+        "Karavan.springbootKubernetesDeploy": {
+          "type": "string",
+          "default": "eval $(minikube -p minikube docker-env) && mvn -Pkubernetes clean package k8s:build k8s:resource k8s:apply",
+          "description": "Springboot deploy command for Kubernetes",
+          "scope": "machine",
+          "order": 70
+        },
+        "Karavan.camelmainOpenshiftDeploy": {
+          "type": "string",
+          "default": "mvn -Popenshift clean package oc:build oc:resource oc:apply",
+          "description": "Camel-main deploy command for Openshift",
+          "scope": "machine",
+          "order": 70
+        },
+        "Karavan.camelmainKubernetesDeploy": {
+          "type": "string",
+          "default": "eval $(minikube -p minikube docker-env) && mvn clean package jib:dockerBuild k8s:resource k8s:apply ",
+          "description": "Camel-main deploy command for Kubernetes",
+          "scope": "machine",
+          "order": 70
+        },
+        "Karavan.applicationGitignore": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".export",
+            ".camel-jbang"
+          ],
+          "description": "Default .gitignore for application",
+          "scope": "machine",
+          "order": 80
+        },
+        "Karavan.quarkusApplicationProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "camel.health.enabled=true",
+            "camel.health.exposure-level=full",
+            "camel.karavan.project-id=$NAME",
+            "camel.karavan.project-name=$NAME",
+            "camel.karavan.target=$TARGET",
+            "camel.jbang.gav=$GAV",
+            "camel.jbang.quarkusVersion=3.15.3",
+            "camel.jbang.runtime=$RUNTIME",
+            "camel.jbang.exportDir=.export"
+          ],
+          "description": "Quarkus application.properties template",
+          "scope": "machine",
+          "order": 90
+        },
+        "Karavan.springbootApplicationProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "camel.health.enabled=true",
+            "camel.health.exposure-level=full",
+            "camel.karavan.project-id=$NAME",
+            "camel.karavan.project-name=$NAME",
+            "camel.karavan.target=$TARGET",
+            "camel.jbang.gav=$GAV",
+            "camel.jbang.camelSpringBootVersion=4.10.2",
+            "camel.jbang.springBootVersion=3.3.0",
+            "camel.jbang.runtime=$RUNTIME",
+            "camel.jbang.exportDir=.export",
+            "management.endpoints.web.exposure.include=health",
+            "management.health.probes.enabled=true",
+            "management.endpoint.health.show-details=always"
+          ],
+          "description": "Spring Boot application.properties template",
+          "scope": "machine",
+          "order": 91
+        },
+        "Karavan.camelmainApplicationProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "camel.karavan.project-id=$NAME",
+            "camel.karavan.project-name=$NAME",
+            "camel.karavan.target=$TARGET",
+            "camel.jbang.gav=$GAV",
+            "camel.jbang.version=4.10.2",
+            "camel.jbang.runtime=camel-main",
+            "camel.jbang.dependencies=camel-console,camel-platform-http-main",
+            "camel.jbang.exportDir=.export",
+            "camel.health.enabled=true",
+            "camel.health.exposure-level=full",
+            "camel.server.enabled=true",
+            "camel.server.healthCheckEnabled=true",
+            "camel.server.devConsoleEnabled=true",
+            "camel.main.tracingStandby=true",
+            "camel.context.dev-console=true"
+          ],
+          "description": "Camel-main application.properties template",
+          "scope": "machine",
+          "order": 91
+        },
+        "Karavan.quarkusOpenshiftProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "camel.jbang.dependencies=camel:microprofile-health,mvn:io.quarkus:quarkus-openshift,mvn:io.quarkus:quarkus-container-image-jib",
+            "# image build properties",
+            "quarkus.container-image.build=true",
+            "quarkus.container-image.group=${NAMESPACE}",
+            "quarkus.container-image.name=$NAME",
+            "quarkus.container-image.tag=${DATE}",
+            "quarkus.container-image.builder=openshift",
+            "# for jib build uncomment and set pproperties",
+            "#quarkus.container-image.builder=jib",
+            "#quarkus.jib.base-jvm-image=registry.access.redhat.com/ubi8/openjdk-17-runtime:1.16",
+            "#quarkus.container-image.insecure=true",
+            "#quarkus.container-image.registry=",
+            "#quarkus.container-image.username=",
+            "#quarkus.container-image.password=",
+            "# deployment properties",
+            "quarkus.kubernetes.deploy=true",
+            "quarkus.kubernetes-client.trust-certs=true",
+            "quarkus.kubernetes.deployment-target=openshift",
+            "quarkus.kubernetes-client.namespace=${NAMESPACE}",
+            "quarkus.kubernetes.namespace=${NAMESPACE}",
+            "quarkus.openshift.labels.\"app.openshift.io/runtime\"=camel",
+            "quarkus.openshift.deployment-kind=Deployment",
+            "quarkus.openshift.add-version-to-label-selectors=false",
+            "quarkus.openshift.route.expose=true",
+            "quarkus.openshift.part-of=$NAME",
+            "quarkus.openshift.replicas=1"
+          ],
+          "description": "application.properties template for camel-quarkus on Openshift",
+          "scope": "machine",
+          "order": 92
+        },
+        "Karavan.quarkusKubernetesProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "camel.jbang.dependencies=camel:microprofile-health,mvn:io.quarkus:quarkus-container-image-jib,mvn:io.quarkus:quarkus-kubernetes",
+            "# image build properties",
+            "quarkus.container-image.build=true",
+            "quarkus.container-image.group=default",
+            "quarkus.container-image.name=$NAME",
+            "quarkus.container-image.builder=jib",
+            "quarkus.jib.base-jvm-image=registry.access.redhat.com/ubi8/openjdk-17-runtime:1.16",
+            "quarkus.container-image.insecure=true",
+            "quarkus.container-image.tag=${DATE}",
+            "# deployment properties",
+            "quarkus.kubernetes.deploy=true",
+            "quarkus.kubernetes-client.trust-certs=true",
+            "quarkus.kubernetes.image-pull-policy=if-not-present",
+            "quarkus.kubernetes.labels.\"app.kubernetes.io/runtime\"=camel",
+            "quarkus.kubernetes.add-version-to-label-selectors=false",
+            "quarkus.kubernetes.deployment-target=kubernetes",
+            "quarkus.kubernetes.replicas=1"
+          ],
+          "description": "application.properties template for camel-quarkus on Kubernetes",
+          "scope": "machine",
+          "order": 93
+        },
+        "Karavan.springbootOpenshiftProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "# jkube properties",
+            "jkube.version=1.18.1",
+            "jkube.build.strategy=s2i",
+            "jkube.namespace=${NAMESPACE}",
+            "jkube.generator.name=image-registry.openshift-image-registry.svc:5000/${NAMESPACE}/$NAME:${DATE}",
+            "jkube.imagePullPolicy=IfNotPresent",
+            "jkube.enricher.jkube-controller.type=Deployment",
+            "jkube.enricher.jkube-controller.replicaCount=1",
+            "jkube.enricher.jkube-service.port=80:8080"
+          ],
+          "description": "application.properties template for camel-springboot on Kubernetes",
+          "scope": "machine",
+          "order": 94
+        },
+        "Karavan.camelmainOpenshiftProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "# jkube properties",
+            "jkube.version=1.18.1",
+            "jkube.build.strategy=s2i",
+            "jkube.namespace=${NAMESPACE}",
+            "jkube.generator.name=image-registry.openshift-image-registry.svc:5000/${NAMESPACE}/$NAME:${DATE}",
+            "jkube.imagePullPolicy=IfNotPresent",
+            "jkube.enricher.jkube-controller.type=Deployment",
+            "jkube.enricher.jkube-controller.replicaCount=1",
+            "jkube.enricher.jkube-service.port=80:8080"
+          ],
+          "description": "application.properties template for camel-main on Kubernetes",
+          "scope": "machine",
+          "order": 94
+        },
+        "Karavan.springbootKubernetesProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "# jkube properties",
+            "jkube.version=1.18.1",
+            "jkube.build.strategy=docker",
+            "jkube.namespace=default",
+            "jkube.generator.name=default/$NAME:${DATE}",
+            "jkube.imagePullPolicy=IfNotPresent",
+            "jkube.enricher.jkube-controller.type=Deployment",
+            "jkube.enricher.jkube-controller.replicaCount=1",
+            "jkube.enricher.jkube-service.port=80:8080"
+          ],
+          "description": "application.properties template for camel-springboot on Kubernetes",
+          "scope": "machine",
+          "order": 95
+        },
+        "Karavan.camelmainKubernetesProperties": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "# kubernetes properties",
+            "label.runtime=app.kubernetes.io/runtime",
+            "jib.from.image=gcr.io/distroless/java17@sha256:68e2373f7bef9486c08356bd9ffd3b40b56e6b9316c5f6885eb58b1d9093b43d",
+            "jib.to.image=default/$NAME:${DATE}",
+            "jkube.version=1.18.1",
+            "jkube.skip.build=true",
+            "jkube.build.strategy=jib",
+            "jkube.namespace=default",
+            "jkube.generator.name=${jib.to.image}",
+            "jkube.imagePullPolicy=IfNotPresent",
+            "jkube.enricher.jkube-controller.type=Deployment",
+            "jkube.enricher.jkube-controller.replicaCount=1",
+            "jkube.enricher.jkube-service.port=80:8080",
+            "jkube.enricher.jkube-project-label.group=karavan",
+            "jkube.enricher.jkube-project-label.provider=karavan",
+            "jkube.recreate=true"
+          ],
+          "description": "application.properties template for camel-main on Kubernetes",
+          "scope": "machine",
+          "order": 95
+        },
+        "Karavan.blockingComponentsPath": {
+          "type": "string",
+          "description": "Blocked kamelets/components Path",
+          "scope": "machine",
+          "order": 96
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "karavan.topology",
+        "title": "Karavan: Show Topology",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "karavan.create-yaml",
+        "title": "Karavan: Create Integration",
+        "icon": "$(add)"
+      },
+      {
+        "command": "karavan.create-kamelet",
+        "title": "Karavan: Create Kamelet",
+        "icon": "$(add)"
+      },
+      {
+        "command": "karavan.create-application",
+        "title": "Karavan: Create Application",
+        "icon": "$(symbol-property)"
+      },
+      {
+        "command": "karavan.open",
+        "title": "Karavan: Open",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "karavan.open-file",
+        "title": "Karavan: Open editor"
+      },
+      {
+        "command": "karavan.run-project-jbang",
+        "title": "Karavan: JBang run",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "karavan.run-project-runtime",
+        "title": "Karavan: Runtime run",
+        "icon": "$(run)"
+      },
+      {
+        "command": "karavan.jbang-export",
+        "title": "Karavan: Export",
+        "icon": "$(export)"
+      },
+      {
+        "command": "karavan.deploy",
+        "title": "Karavan: Deploy",
+        "icon": "$(layers)"
+      },
+      {
+        "command": "karavan.generate-rest",
+        "title": "Karavan: Generate REST API"
+      },
+      {
+        "command": "karavan.download-image",
+        "title": "Download image",
+        "icon": "$(device-camera)"
+      },
+      {
+        "command": "integrations.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "openapi.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "karavan.openKnowledgebase",
+        "title": "Open Knowledgebase"
+      },
+      {
+        "command": "karavan.reportIssue",
+        "title": "Report Issue"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "karavan.create-yaml",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@2"
+        },
+        {
+          "command": "karavan.create-kamelet",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@2"
+        },
+        {
+          "command": "karavan.topology",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot || resourceFilename =~ /.camel.yaml$/",
+          "group": "karavan@1"
+        },
+        {
+          "command": "karavan.create-application",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@3"
+        },
+        {
+          "command": "karavan.open",
+          "when": "resourceFilename =~ /.camel.yaml$/ || resourceFilename =~ /.kamelet.yaml$/",
+          "group": "karavan@4"
+        },
+        {
+          "command": "karavan.run-project-jbang",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@5"
+        },
+        {
+          "command": "karavan.run-project-runtime",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@6"
+        },
+        {
+          "command": "karavan.jbang-export",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@7"
+        },
+        {
+          "command": "karavan.deploy",
+          "when": "explorerResourceIsFolder || explorerResourceIsRoot",
+          "group": "karavan@8"
+        },
+        {
+          "command": "karavan.generate-rest",
+          "when": "resourceExtname == .json || resourceExtname == .yaml",
+          "group": "karavan@9"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "karavan.open",
+          "when": "resourceFilename =~ /.camel.yaml$/ || resourceFilename =~ /.kamelet.yaml$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "karavan.run-project-jbang",
+          "when": "resourceFilename =~ /.camel.yaml$/ || karavan:loaded",
+          "group": "navigation@4"
+        },
+        {
+          "command": "karavan.run-project-runtime",
+          "when": "resourceFilename =~ /.camel.yaml$/ || karavan:loaded",
+          "group": "navigation@5"
+        },
+        {
+          "command": "karavan.download-image",
+          "when": "karavan:loaded",
+          "group": "navigation@10"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "karavan.topology",
+          "when": "view == integrations",
+          "group": "navigation@0"
+        },
+        {
+          "command": "karavan.create-yaml",
+          "when": "view == integrations",
+          "group": "navigation@0"
+        },
+        {
+          "command": "karavan.create-kamelet",
+          "when": "view == integrations",
+          "group": "navigation@0"
+        },
+        {
+          "command": "karavan.run-project-jbang",
+          "when": "view == integrations",
+          "group": "navigation@1"
+        },
+        {
+          "command": "karavan.run-project-runtime",
+          "when": "view == integrations",
+          "group": "navigation@2"
+        },
+        {
+          "command": "karavan.deploy",
+          "when": "view == integrations",
+          "group": "navigation@3"
+        },
+        {
+          "command": "karavan.jbang-export",
+          "when": "view == integrations",
+          "group": "navigation@4"
+        },
+        {
+          "command": "integrations.refresh",
+          "when": "view == integrations",
+          "group": "navigation@5"
+        },
+        {
+          "command": "openapi.refresh",
+          "when": "view == openapi",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "karavan.open",
+          "when": "view == integrations && viewItem == 'integration'",
+          "group": "navigation_1_open@1"
+        },
+        {
+          "command": "karavan.open-file",
+          "when": "view == integrations && viewItem == 'integration'",
+          "group": "navigation_1_open@2"
+        },
+        {
+          "command": "karavan.generate-rest",
+          "when": "view == openapi && viewItem == 'openapi'",
+          "group": "navigation_1_generate@1"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "karavanView",
+          "title": "Karavan",
+          "icon": "icons/karavan-mono-24x24.svg"
+        }
+      ]
+    },
+    "views": {
+      "karavanView": [
+        {
+          "id": "integrations",
+          "name": "Integrations",
+          "visibility": "visible"
+        },
+        {
+          "id": "openapi",
+          "name": "Open API",
+          "visibility": "visible"
+        },
+        {
+          "id": "help",
+          "name": "Help & Feedback",
+          "visibility": "visible"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "integrations",
+        "contents": "No integrations found.\n [Create Integration](command:karavan.create-yaml)"
+      }
+    ]
+  },
+  "scripts": {
+    "copy-core": "cp -r ../karavan-core/src/core webview",
+    "copy-designer": "cp -r ../karavan-designer/src/designer webview && cp -r ../karavan-designer/src/expression webview && cp -r ../karavan-designer/src/knowledgebase webview && cp -r ../karavan-designer/src/topology webview",
+    "replace-import": "run-script-os",
+    "replace-import:darwin": "find webview -type f -name '*.ts*' -exec sed -i '' 's!karavan-core/lib!core!g' {} +",
+    "replace-import:linux": "find webview -type f -name '*.ts*' -exec sed -i 's!karavan-core/lib!core!g' {} +",
+    "copy-karavan": "npm run copy-core && npm run copy-designer && npm run replace-import",
+    "vscode:prepublish": "npm run copy-karavan && npm run package",
+    "compile": "npm run copy-karavan && cross-env NODE_ENV=development webpack --progress --stats-error-details",
+    "watch": "npm run copy-karavan && cross-env NODE_ENV=development webpack --progress --watch",
+    "package": "npm run copy-karavan  && cross-env NODE_ENV=production webpack --progress",
+    "webpack": "cross-env NODE_ENV=development webpack --progress",
+    "test-compile": "tsc -p ./",
+    "test-watch": "tsc -watch -p ./",
+    "pretest": "npm run copy-karavan && npm run test-compile && npm run lint",
+    "lint": "eslint src webview --ext .ts,.tsx",
+    "lint:fix": "eslint --fix src webview --ext .ts,.tsx",
+    "test": "node ./out/test/runTest.js",
+    "open-in-browser": "vscode-test-web --extensionDevelopmentPath=. ../karavan-demo/hello-world/"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "@patternfly/patternfly": "^5.4.2",
+    "@patternfly/react-charts": "7.4.9",
+    "@patternfly/react-core": "^5.4.12",
+    "@patternfly/react-log-viewer": "^5.3.0",
+    "@patternfly/react-table": "^5.4.14",
+    "@patternfly/react-topology": "5.4.1",
+    "@types/js-yaml": "4.0.9",
+    "@types/uuid": "10.0.0",
+    "html-to-image": "1.11.11",
+    "js-yaml": "^4.1.0",
+    "path-browserify": "^1.0.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-resizable-panels": "^2.1.7",
+    "rxjs": "7.8.1",
+    "shelljs": "^0.8.5",
+    "usehooks-ts": "^3.1.0",
+    "uuid": "10.0.0",
+    "zustand": "4.5.5"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@svgr/webpack": "7.0.0",
+    "@types/chai": "^4.3.0",
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.4",
+    "@types/node": "20.14.15",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "18.3.0",
+    "@types/shelljs": "^0.8.15",
+    "@types/vscode": "1.89.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "@vscode/test-electron": "2.3.4",
+    "chai": "^4.3.4",
+    "copy-webpack-plugin": "11.0.0",
+    "cross-env": "^7.0.3",
+    "css-loader": "6.7.3",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.23.2",
+    "file-loader": "^6.2.0",
+    "mini-css-extract-plugin": "^1.6.0",
+    "mocha": "^10.8.2",
+    "prettier": "2.3.0",
+    "run-script-os": "^1.1.6",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.0.14",
+    "typescript": "^4.9.5",
+    "url-loader": "^4.1.1",
+    "vscode-test": "1.6.1",
+    "webpack": "5.94.0",
+    "webpack-cli": "5.0.2"
+  },
+  "overrides": {
+    "@svgr/webpack": "$@svgr/webpack",
+    "core-js": "^3.30.1",
+    "@babel/runtime": "7.26.10"
+  }
+}
