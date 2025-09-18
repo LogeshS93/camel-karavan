@@ -1,0 +1,171 @@
+- route:
+    id: s3-new-files-via-sqs
+    routeConfigurationId: yamlValidationSkip
+    from:
+      id: from-6235
+      uri: aws2-sqs
+      parameters:
+        queueNameOrArn: >-
+          arn:aws:sqs:eu-west-1:296079555281:mule-s3-trigger-new-queue-bronze-powerbot
+        region: eu-west-1
+        deleteAfterRead: true
+        waitTimeSeconds: "20"
+        accessKey: "{{app.accessKey}}"
+        secretKey: "{{app.secretKey}}"
+      steps:
+        - unmarshal:
+            id: unmarshal-8c4f
+            json:
+              id: json-9a34
+        - filter:
+            id: filter-fcb5
+            expression:
+              simple:
+                id: simple-0fd6
+                expression: >-
+                  ${body[Records][0][s3][object][key]} starts with
+                  'powerbot/landing/trades/'
+            steps:
+              - setHeaders:
+                  id: setHeaders-79e4
+                  headers:
+                    - id: setHeader-2bd9
+                      name: CamelAwsS3Key
+                      expression:
+                        simple:
+                          id: simple-28e5
+                          expression: ${body[Records][0][s3][object][key]}
+                    - id: setHeader-adda
+                      name: CamelAwsS3BucketName
+                      expression:
+                        simple:
+                          id: simple-df46
+                          expression: ${body[Records][0][s3][bucket][name]}
+                    - id: setHeader-cb4b
+                      name: data_source
+                      expression:
+                        constant:
+                          id: constant-43a9
+                          expression: mats
+                    - id: setHeader-fcc6
+                      name: file_path
+                      expression:
+                        simple:
+                          id: simple-1a8f
+                          expression: ${header.CamelAwsS3Key.replaceAll('/[^/]*$','')}
+                    - id: setHeader-0cd2
+                      name: file_name
+                      expression:
+                        simple:
+                          id: simple-ed44
+                          expression: ${header.CamelAwsS3Key.replaceAll('^.*/','')}
+        - log:
+            id: log-0f67
+            message: >-
+              NEW -->
+              ${header.CamelAwsS3BucketName}/${header.file_path}/${header.file_name}
+            loggingLevel: INFO
+        - choice:
+            id: choice-e308
+            when:
+              - id: when-3d77
+                expression:
+                  datasonnet:
+                    id: datasonnet-ea2b
+                    expression: |-
+                      ds.contains(cml.header('file_path'), 'powerbot') &&
+                                    ds.regex.regexFullMatch(
+                                      @'(?i)^resultsoverview-(fcr|mfrr|afrr)-capacity-xlsx-.*\.xlsx$',
+                                      cml.header('file_name')
+                                    ) == null
+                steps:
+                  - setHeader:
+                      id: setHeader-7589
+                      name: unwantedFile
+                      expression:
+                        constant:
+                          id: constant-1dc3
+                          expression: "true"
+                  - log:
+                      id: log-eb31
+                      message: "\"Not processing ${header.file_path}/${header.file_name}\""
+                      loggingLevel: INFO
+                  - validate:
+                      id: validate-afa6
+                      expression:
+                        simple:
+                          id: simple-7221
+                          expression: >-
+                            ${header.file_name} != null && ${header.file_name}
+                            != ''
+            otherwise:
+              id: otherwise-6fbe
+              steps:
+                - log:
+                    id: log-7dda
+                    message: "\"Processing ${header.file_path}/${header.file_name}\""
+                    loggingLevel: INFO
+                - setHeader:
+                    id: setHeader-89ea
+                    name: unwantedFile
+                    expression:
+                      simple:
+                        id: simple-e960
+                        expression: "false"
+                - validate:
+                    id: validate-afa6
+                    expression:
+                      simple:
+                        id: simple-7221
+                        expression: >-
+                          ${header.file_name} != null && ${header.file_name} !=
+                          ''
+        - to:
+            id: to-2587
+            uri: aws2-s3
+            parameters:
+              bucketNameOrArn: eno-dm-bronze-dev
+              region: eu-west-1
+              operation: getObject
+              accessKey: "{{app.accessKey}}"
+              secretKey: "{{app.secretKey}}"
+        - convertBodyTo:
+            id: convertBodyTo-c01c
+            type: java.lang.String
+        - log:
+            id: log-0f67
+            message: >-
+              NEW ->
+              ${header.CamelAwsS3BucketName}/${header.file_path}/${header.file_name}
+
+              ${body}
+            loggingLevel: INFO
+- routeConfiguration:
+    id: yamlValidationSkip
+    onException:
+      - onException:
+          id: onException-595d
+          exception:
+            - org.apache.camel.ValidationException
+          redeliveryPolicy:
+            id: redeliveryPolicy-e4bd
+            maximumRedeliveries: "0"
+          handled:
+            constant:
+              id: constant-d1a9
+              expression: "true"
+          steps:
+            - setBody:
+                id: setBody-e02e
+                expression:
+                  simple:
+                    id: simple-39f9
+                    expression: >-
+                      Skipping the event as it is a folder update/delete ->
+                      ${header.file_path}/${header.file_name}
+            - log:
+                id: log-40d1
+                message: ${body}
+                loggingLevel: INFO
+            - stop:
+                id: stop-dee4
