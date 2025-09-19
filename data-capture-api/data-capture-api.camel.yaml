@@ -59,6 +59,19 @@
                         simple:
                           id: simple-ed44
                           expression: ${header.CamelAwsS3Key.replaceAll('^.*/','')}
+                    - id: setHeader-1c48
+                      name: day
+                      expression:
+                        simple:
+                          id: simple-035f
+                          expression: >-
+                            ${header.file_name.split('-')[4]}-${header.file_name.split('-')[5]}-${header.file_name.split('-')[6].replaceAll('\\..*','')}
+                    - id: setHeader-7800
+                      name: market
+                      expression:
+                        simple:
+                          id: simple-884e
+                          expression: ${header.file_name.split('-')[1].toLowerCase()}
         - log:
             id: log-0f67
             message: >-
@@ -129,9 +142,19 @@
               operation: getObject
               accessKey: "{{app.accessKey}}"
               secretKey: "{{app.secretKey}}"
-        - convertBodyTo:
-            id: convertBodyTo-c01c
-            type: java.lang.String
+        - process:
+            id: process-b65e
+            ref: xlsxToSheet001
+        - setHeader:
+            id: setHeader-85ff
+            name: rowCount
+            expression:
+              simple:
+                id: simple-951d
+                expression: ${body.size()}
+        - log:
+            id: log-51f2
+            message: "XLSX sheet 001 rows: ${header.rowCount}"
         - log:
             id: log-0f67
             message: >-
