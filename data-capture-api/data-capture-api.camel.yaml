@@ -163,43 +163,7 @@
                 expression:
                   simple:
                     id: simple-98e6
-                    expression: ${header.market} == 'fcr'
-                steps:
-                  - log:
-                      id: log-1a32
-                      message: Processing new regelleistung Prices for ${header.market}
-                      loggingLevel: INFO
-                  - process:
-                      id: process-656d
-                      ref: buildRegelleistungTimeseries
-                  - to:
-                      id: to-f479
-                      uri: direct
-                      parameters:
-                        name: update-odsPrices-subFlow
-              - id: when-96bf
-                expression:
-                  simple:
-                    id: simple-98e6
-                    expression: ${header.market} == 'afrr'
-                steps:
-                  - log:
-                      id: log-1a32
-                      message: Processing new regelleistung Prices for ${header.market}
-                      loggingLevel: INFO
-                  - process:
-                      id: process-656d
-                      ref: buildRegelleistungTimeseries
-                  - to:
-                      id: to-f479
-                      uri: direct
-                      parameters:
-                        name: update-odsPrices-subFlow
-              - id: when-4884
-                expression:
-                  simple:
-                    id: simple-98e6
-                    expression: ${header.market} == 'mfrr'
+                    expression: ${header.market} == 'fcr' || 'afrr' || 'mfrr'
                 steps:
                   - log:
                       id: log-1a32
