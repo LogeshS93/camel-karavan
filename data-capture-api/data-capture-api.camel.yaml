@@ -155,14 +155,71 @@
         - log:
             id: log-51f2
             message: "XLSX sheet 001 rows: ${header.rowCount}"
-        - log:
-            id: log-0f67
-            message: >-
-              NEW ->
-              ${header.CamelAwsS3BucketName}/${header.file_path}/${header.file_name}
-
-              ${body}
             loggingLevel: INFO
+        - choice:
+            id: choice-5b02
+            when:
+              - id: when-e8af
+                expression:
+                  simple:
+                    id: simple-98e6
+                    expression: ${header.market} == 'fcr'
+                steps:
+                  - log:
+                      id: log-1a32
+                      message: Processing new regelleistung Prices for ${header.market}
+                      loggingLevel: INFO
+                  - process:
+                      id: process-656d
+                      ref: buildRegelleistungTimeseries
+                  - to:
+                      id: to-f479
+                      uri: direct
+                      parameters:
+                        name: update-odsPrices-subFlow
+              - id: when-96bf
+                expression:
+                  simple:
+                    id: simple-98e6
+                    expression: ${header.market} == 'afrr'
+                steps:
+                  - log:
+                      id: log-1a32
+                      message: Processing new regelleistung Prices for ${header.market}
+                      loggingLevel: INFO
+                  - process:
+                      id: process-656d
+                      ref: buildRegelleistungTimeseries
+                  - to:
+                      id: to-f479
+                      uri: direct
+                      parameters:
+                        name: update-odsPrices-subFlow
+              - id: when-4884
+                expression:
+                  simple:
+                    id: simple-98e6
+                    expression: ${header.market} == 'mfrr'
+                steps:
+                  - log:
+                      id: log-1a32
+                      message: Processing new regelleistung Prices for ${header.market}
+                      loggingLevel: INFO
+                  - process:
+                      id: process-656d
+                      ref: buildRegelleistungTimeseries
+                  - to:
+                      id: to-f479
+                      uri: direct
+                      parameters:
+                        name: update-odsPrices-subFlow
+            otherwise:
+              id: otherwise-6b95
+              steps:
+                - log:
+                    id: log-f298
+                    message: Invalid market type ${header.market}
+                    loggingLevel: DEBUG
 - routeConfiguration:
     id: yamlValidationSkip
     onException:
