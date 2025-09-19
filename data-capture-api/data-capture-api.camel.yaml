@@ -163,7 +163,7 @@
                 expression:
                   simple:
                     id: simple-98e6
-                    expression: ${header.market} == 'fcr' || 'afrr' || 'mfrr'
+                    expression: ${header.market} in 'fcr,afrr,mfrr'
                 steps:
                   - log:
                       id: log-1a32
@@ -184,6 +184,18 @@
                     id: log-f298
                     message: Invalid market type ${header.market}
                     loggingLevel: DEBUG
+- route:
+    id: update-odsPrices-subFlow
+    from:
+      id: from-012a
+      uri: direct
+      parameters:
+        name: update-odsPrices-subFlow
+      steps:
+        - log:
+            id: log-cf22
+            message: ODS update (per series) -> ${body.values.size()} points
+            loggingLevel: INFO
 - routeConfiguration:
     id: yamlValidationSkip
     onException:
