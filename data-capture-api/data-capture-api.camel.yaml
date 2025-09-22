@@ -65,7 +65,7 @@
                         simple:
                           id: simple-035f
                           expression: >-
-                            ${header.file_name.split('-')[4]}-${header.file_name.split('-')[5]}-${header.file_name.split('-')[6].replaceAll('\\..*','')}
+                            ${header.file_name.split('-')[4]}-${header.file_name.split('-')[5]}-${header.file_name.split('-')[6].replaceAll('\..*','')}
                     - id: setHeader-7800
                       name: market
                       expression:
@@ -85,12 +85,14 @@
                 expression:
                   datasonnet:
                     id: datasonnet-ea2b
-                    expression: >-
+                    expression: >
                       local fileName = if cml.header('file_name') == null then
                       "" else cml.header('file_name');
 
                       ds.contains(cml.header('file_path'), 'powerbot') &&
-                             !ds.matches(fileName, @'(?i)^resultsoverview-(fcr|mfrr|afrr)-capacity-xlsx-.*\.xlsx$')
+
+                      !ds.matches(fileName,
+                      @'(?i)^resultsoverview-(fcr|mfrr|afrr)-capacity-xlsx-.*\.xlsx$')
                 steps:
                   - setHeader:
                       id: setHeader-7589
@@ -101,10 +103,10 @@
                           expression: "true"
                   - log:
                       id: log-eb31
-                      message: "\"Not processing ${header.file_path}/${header.file_name}\""
+                      message: Not processing ${header.file_path}/${header.file_name}
                       loggingLevel: INFO
                   - validate:
-                      id: validate-afa6
+                      id: validate-skip
                       expression:
                         simple:
                           id: simple-7221
@@ -116,7 +118,7 @@
               steps:
                 - log:
                     id: log-7dda
-                    message: "\"Processing ${header.file_path}/${header.file_name}\""
+                    message: Processing ${header.file_path}/${header.file_name}
                     loggingLevel: INFO
                 - setHeader:
                     id: setHeader-89ea
@@ -126,10 +128,10 @@
                         id: simple-e960
                         expression: "false"
                 - validate:
-                    id: validate-afa6
+                    id: validate-ok
                     expression:
                       simple:
-                        id: simple-7221
+                        id: simple-7221b
                         expression: >-
                           ${header.file_name} != null && ${header.file_name} !=
                           ''
@@ -138,249 +140,230 @@
             when:
               - id: when-2fa8
                 expression:
-                  groovy:
-                    id: groovy-41b0
+                  simple:
+                    id: simple-dee8
+                    expression: ${header.unwantedFile} == 'false'
+                steps:
+                  - to:
+                      id: to-2587
+                      uri: aws2-s3
+                      parameters:
+                        bucketNameOrArn: eno-dm-bronze-dev
+                        region: eu-west-1
+                        operation: getObject
+                        accessKey: "{{app.accessKey}}"
+                        secretKey: "{{app.secretKey}}"
+                  - process:
+                      id: process-b65e
+                      ref: xlsxToSheet001
+                  - marshal:
+                      id: marshal-b5d1
+                      json:
+                        id: json-97fc
+                        prettyPrint: true
+                        library: Jackson
+                  - log:
+                      id: log-51f2
+                      message: XLSX sheet 001 tab is rendered
+                      loggingLevel: INFO
+                  - choice:
+                      id: choice-5b02
+                      when:
+                        - id: when-fcr
+                          expression:
+                            simple:
+                              id: simple-98e6
+                              expression: ${header.market} == 'fcr'
+                          steps:
+                            - log:
+                                id: log-1a32-fcr
+                                message: >-
+                                  Processing new regelleistung Prices for
+                                  ${header.market}
+                                loggingLevel: INFO
+                            - setBody:
+                                id: setBody-319a-fcr
+                                expression:
+                                  datasonnet:
+                                    id: datasonnet-bd5b-fcr
+                                    expression: >
+                                      // application/json
+
+                                      local buildDateTime(dateFrom, startTime) =
+                                        ds.datetime
+                                          .parse(dateFrom, "d/M/yy")
+                                          .toTimeZone("Europe/Luxembourg")
+                                          .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
+                                          .toISO();
+                                      local buildValue(v) =
+                                        if v == null then null
+                                        else if v == "" then null
+                                        else if std.isNumber(v) then v
+                                        else if std.isString(v) && ds.matches(v, "^-?\\d+(\\.\\d+)?$")
+                                          then ds.parseDouble(v)
+                                          else v;
+                                      local rows = if std.isArray(payload) then
+                                      payload else [];
+
+                                      local items = ds.map(rows, function(value,
+                                      index) {
+                                        name: "de_fcr_" + std.asciiLower(ds.strings.substringBefore(value.PRODUCTNAME, "_")) + "_settlement_capacity",
+                                        ts: buildDateTime(value.DATE_FROM, value.PRODUCTNAME),
+                                        value: buildValue(value["GERMANY_SETTLEMENTCAPACITY_PRICE_[EUR/MW]"])
+                                      });
+
+                                      local grouped = ds.groupBy(items,
+                                      function(v, i) v.name);
+
+                                      [
+                                        {
+                                          name: k,
+                                          values: ds.map(grouped[k], function(v, i) { ts: v.ts, value: v.value })
+                                        }
+                                        for k in std.objectFields(grouped)
+                                      ]
+                                    outputMediaType: application/json
+                                    resultType: java.lang.String
+                            - to:
+                                id: to-f479-fcr
+                                uri: direct
+                                parameters:
+                                  name: update-odsPrices-subFlow
+                        - id: when-afrr
+                          expression:
+                            simple:
+                              id: simple-98e6-a
+                              expression: ${header.market} == 'afrr'
+                          steps:
+                            - log:
+                                id: log-1a32-afrr
+                                message: >-
+                                  Processing new regelleistung Prices for
+                                  ${header.market}
+                                loggingLevel: INFO
+                            - setBody:
+                                id: setBody-319a-afrr
+                                expression:
+                                  datasonnet:
+                                    id: datasonnet-bd5b-afrr
+                                    expression: >
+                                      // application/json
+
+                                      local buildDateTime(dateFrom, startTime) =
+                                        ds.datetime
+                                          .parse(dateFrom, "d/M/yy")
+                                          .toTimeZone("Europe/Luxembourg")
+                                          .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
+                                          .toISO();
+                                      local buildValue(v) =
+                                        if v == null then null
+                                        else if v == "" then null
+                                        else if std.isNumber(v) then v
+                                        else if std.isString(v) && ds.matches(v, "^-?\\d+(\\.\\d+)?$")
+                                          then ds.parseDouble(v)
+                                          else v;
+                                      local rows = if std.isArray(payload) then
+                                      payload else [];
+
+                                      local items = ds.map(rows, function(value,
+                                      index) {
+                                        name: "de_afrr_" + std.asciiLower(ds.strings.substringBefore(value.PRODUCT, "_")) + "_marginal_capacity",
+                                        ts: buildDateTime(value.DATE_FROM, value.PRODUCT),
+                                        value: buildValue(value["GERMANY_MARGINAL_CAPACITY_PRICE_[(EUR/MW)/h]"])
+                                      });
+
+                                      local grouped = ds.groupBy(items,
+                                      function(v, i) v.name);
+
+                                      [
+                                        {
+                                          name: k,
+                                          values: ds.map(grouped[k], function(v, i) { ts: v.ts, value: v.value })
+                                        }
+                                        for k in std.objectFields(grouped)
+                                      ]
+                                    outputMediaType: application/json
+                                    resultType: java.lang.String
+                            - to:
+                                id: to-f479-afrr
+                                uri: direct
+                                parameters:
+                                  name: update-odsPrices-subFlow
+                        - id: when-mfrr
+                          expression:
+                            simple:
+                              id: simple-98e6-m
+                              expression: ${header.market} == 'mfrr'
+                          steps:
+                            - log:
+                                id: log-1a32-mfrr
+                                message: >-
+                                  Processing new regelleistung Prices for
+                                  ${header.market}
+                                loggingLevel: INFO
+                            - setBody:
+                                id: setBody-319a-mfrr
+                                expression:
+                                  datasonnet:
+                                    id: datasonnet-bd5b-mfrr
+                                    expression: >
+                                      // application/json
+
+                                      local buildDateTime(dateFrom, startTime) =
+                                        ds.datetime
+                                          .parse(dateFrom, "d/M/yy")
+                                          .toTimeZone("Europe/Luxembourg")
+                                          .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
+                                          .toISO();
+                                      local buildValue(v) =
+                                        if v == null then null
+                                        else if v == "" then null
+                                        else if std.isNumber(v) then v
+                                        else if std.isString(v) && ds.matches(v, "^-?\\d+(\\.\\d+)?$")
+                                          then ds.parseDouble(v)
+                                          else v;
+                                      local rows = if std.isArray(payload) then
+                                      payload else [];
+
+                                      local items = ds.map(rows, function(value,
+                                      index) {
+                                        name: "de_mfrr_" + std.asciiLower(ds.strings.substringBefore(value.PRODUCT, "_")) + "_marginal_capacity",
+                                        ts: buildDateTime(value.DATE_FROM, value.PRODUCT),
+                                        value: buildValue(value["GERMANY_MARGINAL_CAPACITY_PRICE_[(EUR/MW)/h]"])
+                                      });
+
+                                      local grouped = ds.groupBy(items,
+                                      function(v, i) v.name);
+
+                                      [
+                                        {
+                                          name: k,
+                                          values: ds.map(grouped[k], function(v, i) { ts: v.ts, value: v.value })
+                                        }
+                                        for k in std.objectFields(grouped)
+                                      ]
+                                    outputMediaType: application/json
+                                    resultType: java.lang.String
+                            - to:
+                                id: to-f479-mfrr
+                                uri: direct
+                                parameters:
+                                  name: update-odsPrices-subFlow
+                      otherwise:
+                        id: otherwise-6b95
+                        steps:
+                          - log:
+                              id: log-f298
+                              message: Invalid market type ${header.market}
+                              loggingLevel: DEBUG
             otherwise:
               id: otherwise-e719
-        - to:
-            id: to-2587
-            uri: aws2-s3
-            parameters:
-              bucketNameOrArn: eno-dm-bronze-dev
-              region: eu-west-1
-              operation: getObject
-              accessKey: "{{app.accessKey}}"
-              secretKey: "{{app.secretKey}}"
-        - process:
-            id: process-b65e
-            ref: xlsxToSheet001
-        - marshal:
-            id: marshal-b5d1
-            json:
-              id: json-97fc
-              prettyPrint: true
-              library: Jackson
-        - log:
-            id: log-51f2
-            message: XLSX sheet 001 tab is rendered
-            loggingLevel: INFO
-        - choice:
-            id: choice-5b02
-            when:
-              - id: when-e8af
-                expression:
-                  simple:
-                    id: simple-98e6
-                    expression: ${header.market} == 'fcr'
-                steps:
-                  - log:
-                      id: log-1a32
-                      message: Processing new regelleistung Prices for ${header.market}
-                      loggingLevel: INFO
-                  - setBody:
-                      id: setBody-319a
-                      expression:
-                        datasonnet:
-                          id: datasonnet-bd5b
-                          expression: >-
-                            // application/json
-
-                            local buildDateTime(dateFrom, startTime) =
-                            ds.datetime
-                                .parse(dateFrom, "d/M/yy")                    
-                                .toTimeZone("Europe/Luxembourg")            
-                                .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
-                                .toISO(); 
-
-                            local buildValue(v) =
-                              if v == null then null
-                              else if v == "" then null
-                              else if std.isNumber(v) then v
-                              else if std.isString(v) && ds.matches(v, "^-?\\d+(\\.\\d+)?$")
-                                   then ds.parseDouble(v)
-                                   else v;
-
-                            // ---- main
-                            ---------------------------------------------------
-
-                            local rows = if std.isArray(payload) then payload
-                            else [];
-
-
-                            local items = ds.map(rows, function(value, index)
-                              {
-                                name: "de_fcr_" + std.asciiLower(ds.strings.substringBefore(value.PRODUCTNAME, "_")) + "_settlement_capacity",
-                                ts: buildDateTime(value.DATE_FROM, value.PRODUCTNAME),
-                                value: buildValue(value["GERMANY_SETTLEMENTCAPACITY_PRICE_[EUR/MW]"])
-                              }
-                            );
-
-
-                            local grouped = ds.groupBy(items, function(v, i)
-                            v.name);
-
-
-                            // turn the grouped object into the required array
-
-                            [
-                              {
-                                name: k,
-                                values: ds.map(grouped[k], function(v, i) { ts: v.ts, value: v.value })
-                              }
-                              for k in std.objectFields(grouped)
-                            ]
-                          outputMediaType: application/json
-                          resultType: java.lang.String
-                  - to:
-                      id: to-f479
-                      uri: direct
-                      parameters:
-                        name: update-odsPrices-subFlow
-              - id: when-e8af
-                expression:
-                  simple:
-                    id: simple-98e6
-                    expression: ${header.market} == 'afrr'
-                steps:
-                  - log:
-                      id: log-1a32
-                      message: Processing new regelleistung Prices for ${header.market}
-                      loggingLevel: INFO
-                  - setBody:
-                      id: setBody-319a
-                      expression:
-                        datasonnet:
-                          id: datasonnet-bd5b
-                          expression: >-
-                            // application/json
-
-                            local buildDateTime(dateFrom, startTime) =
-                            ds.datetime
-                                .parse(dateFrom, "d/M/yy")                    
-                                .toTimeZone("Europe/Luxembourg")            
-                                .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
-                                .toISO(); 
-
-                            local buildValue(v) =
-                              if v == null then null
-                              else if v == "" then null
-                              else if std.isNumber(v) then v
-                              else if std.isString(v) && ds.matches(v, "^-?\\d+(\\.\\d+)?$")
-                                   then ds.parseDouble(v)
-                                   else v;
-
-                            // ---- main
-                            ---------------------------------------------------
-
-                            local rows = if std.isArray(payload) then payload
-                            else [];
-
-
-                            local items = ds.map(rows, function(value, index)
-                              {
-                                name: "de_afrr_" + std.asciiLower(ds.strings.substringBefore(value.PRODUCT, "_")) + "_marginal_capacity",
-                                ts: buildDateTime(value.DATE_FROM, value.PRODUCT),
-                                value: buildValue(value["GERMANY_MARGINAL_CAPACITY_PRICE_[(EUR/MW)/h]"])
-                              }
-                            );
-
-
-                            local grouped = ds.groupBy(items, function(v, i)
-                            v.name);
-
-
-                            // turn the grouped object into the required array
-
-                            [
-                              {
-                                name: k,
-                                values: ds.map(grouped[k], function(v, i) { ts: v.ts, value: v.value })
-                              }
-                              for k in std.objectFields(grouped)
-                            ]
-                          outputMediaType: application/json
-                          resultType: java.lang.String
-                  - to:
-                      id: to-f479
-                      uri: direct
-                      parameters:
-                        name: update-odsPrices-subFlow
-              - id: when-e8af
-                expression:
-                  simple:
-                    id: simple-98e6
-                    expression: ${header.market} == 'mfrr'
-                steps:
-                  - log:
-                      id: log-1a32
-                      message: Processing new regelleistung Prices for ${header.market}
-                      loggingLevel: INFO
-                  - setBody:
-                      id: setBody-319a
-                      expression:
-                        datasonnet:
-                          id: datasonnet-bd5b
-                          expression: >-
-                            // application/json
-
-                            local buildDateTime(dateFrom, startTime) =
-                            ds.datetime
-                                .parse(dateFrom, "d/M/yy")                    
-                                .toTimeZone("Europe/Luxembourg")            
-                                .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
-                                .toISO(); 
-
-                            local buildValue(v) =
-                              if v == null then null
-                              else if v == "" then null
-                              else if std.isNumber(v) then v
-                              else if std.isString(v) && ds.matches(v, "^-?\\d+(\\.\\d+)?$")
-                                   then ds.parseDouble(v)
-                                   else v;
-
-                            // ---- main
-                            ---------------------------------------------------
-
-                            local rows = if std.isArray(payload) then payload
-                            else [];
-
-
-                            local items = ds.map(rows, function(value, index)
-                              {
-                                name: "de_mfrr_" + std.asciiLower(ds.strings.substringBefore(value.PRODUCT, "_")) + "_marginal_capacity",
-                                ts: buildDateTime(value.DATE_FROM, value.PRODUCT),
-                                value: buildValue(value["GERMANY_MARGINAL_CAPACITY_PRICE_[(EUR/MW)/h]"])
-                              }
-                            );
-
-
-                            local grouped = ds.groupBy(items, function(v, i)
-                            v.name);
-
-
-                            // turn the grouped object into the required array
-
-                            [
-                              {
-                                name: k,
-                                values: ds.map(grouped[k], function(v, i) { ts: v.ts, value: v.value })
-                              }
-                              for k in std.objectFields(grouped)
-                            ]
-                          outputMediaType: application/json
-                          resultType: java.lang.String
-                  - to:
-                      id: to-f479
-                      uri: direct
-                      parameters:
-                        name: update-odsPrices-subFlow
-            otherwise:
-              id: otherwise-6b95
               steps:
                 - log:
-                    id: log-f298
-                    message: Invalid market type ${header.market}
-                    loggingLevel: DEBUG
+                    id: log-a47a
+                    message: Invalid/Unwanted file
+                - stop:
+                    id: stop-8b82
 - route:
     id: update-odsPrices-subFlow
     from:
@@ -393,6 +376,25 @@
             id: log-cf22
             message: ODS update (per series) -> ${body} points
             loggingLevel: INFO
+        - split:
+            id: split-db67
+            expression:
+              simple:
+                id: simple-e315
+                expression: ${body}
+            steps:
+              - to:
+                  id: to-a480
+                  uri: kamelet:postgresql-sink
+                  parameters:
+                    serverName: ods.cgehnoqtvxx4.eu-west-1.rds.amazonaws.com
+                    username: mule-data-capture
+                    password: "{{app.pgdbPwd}}"
+                    databaseName: price.daily_data
+                    query: >-
+                      INSERT INTO price.daily_data (id, day, values) VALUES
+                      (:#name, :#day, CAST(:#values AS jsonb)) ON CONFLICT (id,
+                      day) DO UPDATE SET values = EXCLUDED.values;
 - routeConfiguration:
     id: yamlValidationSkip
     onException:
