@@ -191,7 +191,7 @@
 
                                       local buildDateTime(dateFrom, startTime) =
                                         ds.datetime
-                                          .parse(dateFrom, "d/M/yy")
+                                          .parse(dateFrom, "M/d/yy")
                                           .toTimeZone("Europe/Luxembourg")
                                           .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
                                           .toISO();
@@ -251,7 +251,7 @@
 
                                       local buildDateTime(dateFrom, startTime) =
                                         ds.datetime
-                                          .parse(dateFrom, "d/M/yy")
+                                          .parse(dateFrom, "M/d/yy")
                                           .toTimeZone("Europe/Luxembourg")
                                           .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
                                           .toISO();
@@ -311,7 +311,7 @@
 
                                       local buildDateTime(dateFrom, startTime) =
                                         ds.datetime
-                                          .parse(dateFrom, "d/M/yy")
+                                          .parse(dateFrom, "M/d/yy")
                                           .toTimeZone("Europe/Luxembourg")
                                           .plus("PT" + std.toString(std.parseInt(std.split(startTime, "_")[1])) + "H")
                                           .toISO();
@@ -374,15 +374,71 @@
       steps:
         - log:
             id: log-cf22
-            message: ODS update (per series) -> ${body} points
+            message: ODS update (per series) -> ${body}
             loggingLevel: INFO
+        - unmarshal:
+            id: unmarshal-d874
+            json:
+              id: json-e69e
+              library: Jackson
         - split:
-            id: split-db67
+            id: split-d383
             expression:
               simple:
-                id: simple-e315
+                id: simple-04e0
                 expression: ${body}
             steps:
+              - log:
+                  id: log-d6b8
+                  message: split ${body}
+              - setProperty:
+                  id: setProperty-d0cf
+                  name: origElem
+                  expression:
+                    simple:
+                      id: simple-d143
+                      expression: ${body}
+              - setBody:
+                  id: setBody-4514
+                  expression:
+                    simple:
+                      id: simple-6d2d
+                      expression: ${body[values]}
+              - marshal:
+                  id: marshal-87ac
+                  json:
+                    id: json-5a7a
+                    library: Jackson
+              - convertBodyTo:
+                  id: convertBodyTo-3c10
+                  type: java.lang.String
+              - setHeaders:
+                  id: setHeaders-b647
+                  headers:
+                    - id: setHeader-8dd4
+                      name: name
+                      expression:
+                        simple:
+                          id: simple-bd57
+                          expression: ${exchangeProperty.origElem[name]}
+                    - id: setHeader-d48b
+                      name: day
+                      expression:
+                        simple:
+                          id: simple-1dd1
+                          expression: ${header.day}
+                    - id: setHeader-720f
+                      name: values
+                      expression:
+                        simple:
+                          id: simple-f2ba
+                          expression: ${body}
+              - log:
+                  id: log-4c17
+                  message: >-
+                    name=${header.name}, day=${header.day},
+                    values=${header.values}
+                  loggingLevel: INFO
               - to:
                   id: to-a480
                   uri: kamelet:postgresql-sink
@@ -390,11 +446,11 @@
                     serverName: ods.cgehnoqtvxx4.eu-west-1.rds.amazonaws.com
                     username: mule-data-capture
                     password: "{{app.pgdbPwd}}"
-                    databaseName: price.daily_data
+                    databaseName: prices
                     query: >-
                       INSERT INTO price.daily_data (id, day, values) VALUES
-                      (:#name, :#day, CAST(:#values AS jsonb)) ON CONFLICT (id,
-                      day) DO UPDATE SET values = EXCLUDED.values;
+                      (:#name, CAST(:#day AS date), CAST(:#values AS jsonb)) ON
+                      CONFLICT (id, day) DO UPDATE SET values = EXCLUDED.values;
 - routeConfiguration:
     id: yamlValidationSkip
     onException:
