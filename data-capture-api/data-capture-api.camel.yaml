@@ -295,12 +295,6 @@
                               id: simple-98e6-m
                               expression: ${header.market} == 'mfrr'
                           steps:
-                            - log:
-                                id: log-1a32-mfrr
-                                message: >-
-                                  Processing new regelleistung Prices for
-                                  ${header.market}
-                                loggingLevel: INFO
                             - setBody:
                                 id: setBody-319a-mfrr
                                 expression:
